@@ -41,12 +41,15 @@
               return 'containerDefaultRendition';
             } else if (Document.getType() == 'Folder') {
               return 'containerDefaultRendition';
-            } else {
-              return 'xmlExport';
             }
-          } else {
-            return 'xmlExport';
+          } else if (Reason == 'publish') {
+            if (Document.getType() == "File" || Document.getType() == "Note") {
+              return 'pdf';
+            } else if (Document.hasSchema("file")) {
+              return 'mainBlob';
+            }
           }
+          return 'xmlExport';
         }
       </script>
     </defaultRendition>
