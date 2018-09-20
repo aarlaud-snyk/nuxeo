@@ -108,8 +108,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
 
     protected List<DefaultRenditionDescriptor> defaultRenditionDescriptors = new ArrayList<>();
 
-    protected DefaultRenditionDescriptor defaultRenditionDescriptor;
-
     protected static final StoredRenditionManager DEFAULT_STORED_RENDITION_MANAGER = new DefaultStoredRenditionManager();
 
     /**
@@ -262,7 +260,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
         } else if (STORED_RENDITION_MANAGERS_EP.equals(extensionPoint)) {
             storedRenditionManagerDescriptors.add(((StoredRenditionManagerDescriptor) contribution));
         } else if (DEFAULT_RENDITION_EP.equals(extensionPoint)) {
-            defaultRenditionDescriptor = ((DefaultRenditionDescriptor) contribution);
             // Save contribution
             defaultRenditionDescriptors.add((DefaultRenditionDescriptor) contribution);
         }
@@ -340,13 +337,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             storedRenditionManagerDescriptors.remove((contribution));
         } else if (DEFAULT_RENDITION_EP.equals(extensionPoint)) {
             defaultRenditionDescriptors.remove(contribution);
-            if (defaultRenditionDescriptors.isEmpty()) {
-                // We don't have any default rendition descriptor
-                defaultRenditionDescriptor = null;
-            } else {
-                // Go back to the last contribution added
-                defaultRenditionDescriptor = defaultRenditionDescriptors.get(defaultRenditionDescriptors.size() - 1);
-            }
         }
     }
 
@@ -535,28 +525,39 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
 
     @Override
     public Rendition getDefaultRendition(DocumentModel doc, String reason, Map<String, Serializable> extendedInfos) {
-        if (defaultRenditionDescriptor == null) {
+        DefaultRenditionDescriptor resolvedDesc = null;
+        for (int i = defaultRenditionDescriptors.size() - 1; i > -1; i--) {
+            DefaultRenditionDescriptor d = defaultRenditionDescriptors.get(i);
+            if ((StringUtils.isEmpty(reason) && StringUtils.isEmpty(d.reason))
+                    || (reason != null && reason.equals(d.reason))) {
+                resolvedDesc = d;
+                break;
+            }
+        }
+        if (resolvedDesc == null) {
+            if (log.isWarnEnabled()) {
+                log.warn(String.format("Cannot find default rendition script for reason %s", reason));
+            }
             return null;
         }
         Map<String, Object> context = new HashMap<>();
         Map<String, Serializable> ei = extendedInfos == null ? Collections.emptyMap() : extendedInfos;
         NuxeoPrincipal currentUser = ClientLoginModule.getCurrentPrincipal();
         context.put("Document", doc);
-        context.put("Reason", reason);
         context.put("Infos", ei);
         context.put("CurrentUser", currentUser);
-        ScriptEngine engine = scriptEngineManager.getEngineByName(defaultRenditionDescriptor.getScriptLanguage());
+        ScriptEngine engine = scriptEngineManager.getEngineByName(resolvedDesc.getScriptLanguage());
         if (engine == null) {
             throw new NuxeoException(
-                    "Engine not found for language: " + defaultRenditionDescriptor.getScriptLanguage());
+                    "Engine not found for language: " + resolvedDesc.getScriptLanguage());
         }
         if (!(engine instanceof Invocable)) {
             throw new NuxeoException("Engine " + engine.getClass().getName() + " not Invocable for language: "
-                    + defaultRenditionDescriptor.getScriptLanguage());
+                    + resolvedDesc.getScriptLanguage());
         }
         Rendition rendition = null;
         try {
-            engine.eval(defaultRenditionDescriptor.getScript());
+            engine.eval(resolvedDesc.getScript());
             engine.getBindings(ScriptContext.ENGINE_SCOPE).putAll(context);
             Object result = ((Invocable) engine).invokeFunction("run");
             if (!(result instanceof String)) {
