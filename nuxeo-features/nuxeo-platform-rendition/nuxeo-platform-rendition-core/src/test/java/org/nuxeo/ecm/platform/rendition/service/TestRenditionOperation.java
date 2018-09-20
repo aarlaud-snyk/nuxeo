@@ -20,8 +20,10 @@ package org.nuxeo.ecm.platform.rendition.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -42,8 +44,10 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.operation.GetRendition;
+import org.nuxeo.ecm.platform.rendition.operation.PublishRendition;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 7.3
@@ -86,6 +90,36 @@ public class TestRenditionOperation {
 
         Rendition pdfRendition = renditionService.getRendition(file, "pdf");
         assertEquals(renditionBlob.getLength(), pdfRendition.getBlob().getLength());
+    }
+
+    /**
+     * @throws OperationException
+     * @since 10.3
+     */
+    @Test
+    public void shouldPublishPDFRendition() throws OperationException {
+        DocumentModel file = createDummyFile();
+        DocumentModel section = session.createDocumentModel("/", "section", "Section");
+        section = session.createDocument(section);
+
+        OperationContext ctx = new OperationContext(session);
+        ctx.setInput(file);
+        Map<String, Object> params = new HashMap<>();
+        params.put("renditionName", "pdf");
+        params.put("target", section);
+        DocumentModel publishedRendition = (DocumentModel) automationService.run(ctx, PublishRendition.ID, params);
+        assertNotNull(publishedRendition);
+        assertTrue(publishedRendition.isProxy());
+        assertEquals(section.getRef(), publishedRendition.getParentRef());
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        List<DocumentModel> versions = session.getVersions(file.getRef());
+        assertNotNull(versions);
+        assertEquals(1, versions.size());
+        List<DocumentModel> retrievedPublished = session.query(String.format(
+                "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
+        assertEquals(1, retrievedPublished.size());
+        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
     }
 
     protected DocumentModel createDummyFile() {
