@@ -11,6 +11,7 @@
           } else if (Document.hasSchema("file")) {
             return 'mainBlob';
           }
+          return null;
         }
       </script>
     </defaultRendition>

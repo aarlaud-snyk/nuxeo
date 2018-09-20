@@ -525,6 +525,11 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
 
     @Override
     public Rendition getDefaultRendition(DocumentModel doc, String reason, Map<String, Serializable> extendedInfos) {
+        return getDefaultRendition(doc, reason, false, extendedInfos);
+    }
+
+    @Override
+    public Rendition getDefaultRendition(DocumentModel doc, String reason, boolean store, Map<String, Serializable> extendedInfos) {
         DefaultRenditionDescriptor resolvedDesc = null;
         for (int i = defaultRenditionDescriptors.size() - 1; i > -1; i--) {
             DefaultRenditionDescriptor d = defaultRenditionDescriptors.get(i);
@@ -579,6 +584,12 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             throw new NuxeoException("Script does not contain function: run() in defaultRendition: ", e);
         } catch (ScriptException e) {
             log.error("Failed to evaluate script: ", e);
+        }
+        if (store) {
+            StoredRendition storedRendition = storeRendition(doc, rendition);
+            if (storedRendition != null) {
+                return storedRendition;
+            }
         }
         return rendition;
     }

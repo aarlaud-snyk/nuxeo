@@ -82,17 +82,33 @@ public interface RenditionService {
     Rendition getRendition(DocumentModel doc, String renditionName);
 
     /**
+     * Same than {@link #getDefaultRendition(DocumentModel, String, boolean, Map)} with store parameter set to false.
+     */
+    /**
+     * Same than {@link #getDefaultRendition(DocumentModel, String, boolean, Map)} with store parameter set to false.
+     *
+     * @param doc the document to render
+     * @param reason the reason the rendition is being rendered (optional)
+     * @param extendedInfos map of extended info added in the default rendition computation (optional)
+     * @since 9.10
+     * @return the default {@link Rendition} object
+     */
+    Rendition getDefaultRendition(DocumentModel doc, String reason, Map<String, Serializable> extendedInfos);
+
+    /**
      * Return the default {@link Rendition} object for the given {@link DocumentModel}.
      * <p>
      * A stored rendition is returned if found and up to date, a new Rendition is created otherwise.
      *
      * @param doc the document to render
      * @param reason the reason the rendition is being rendered (optional)
+     * @param store indicates if the rendition must be stored
      * @param extendedInfos map of extended info added in the default rendition computation (optional)
-     * @since 9.3
+     * @since 10.3
      * @return the default {@link Rendition} object
      */
-    Rendition getDefaultRendition(DocumentModel doc, String reason, Map<String, Serializable> extendedInfos);
+    Rendition getDefaultRendition(DocumentModel doc, String reason, boolean store,
+            Map<String, Serializable> extendedInfos);
 
     /**
      * Return the {@link Rendition} object for the given {@link DocumentModel} and a rendition definition name.

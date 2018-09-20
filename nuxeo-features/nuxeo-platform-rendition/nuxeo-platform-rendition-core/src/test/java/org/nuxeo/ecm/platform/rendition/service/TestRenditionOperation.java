@@ -93,7 +93,6 @@ public class TestRenditionOperation {
     }
 
     /**
-     * @throws OperationException
      * @since 10.3
      */
     @Test
@@ -106,6 +105,34 @@ public class TestRenditionOperation {
         ctx.setInput(file);
         Map<String, Object> params = new HashMap<>();
         params.put("renditionName", "pdf");
+        params.put("target", section);
+        DocumentModel publishedRendition = (DocumentModel) automationService.run(ctx, PublishRendition.ID, params);
+        assertNotNull(publishedRendition);
+        assertTrue(publishedRendition.isProxy());
+        assertEquals(section.getRef(), publishedRendition.getParentRef());
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        List<DocumentModel> versions = session.getVersions(file.getRef());
+        assertNotNull(versions);
+        assertEquals(1, versions.size());
+        List<DocumentModel> retrievedPublished = session.query(String.format(
+                "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
+        assertEquals(1, retrievedPublished.size());
+        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
+    }
+
+    /**
+     * @since 10.3
+     */
+    @Test
+    public void shouldPublishDefaultRendition() throws OperationException {
+        DocumentModel file = createDummyFile();
+        DocumentModel section = session.createDocumentModel("/", "section", "Section");
+        section = session.createDocument(section);
+
+        OperationContext ctx = new OperationContext(session);
+        ctx.setInput(file);
+        Map<String, Object> params = new HashMap<>();
         params.put("target", section);
         DocumentModel publishedRendition = (DocumentModel) automationService.run(ctx, PublishRendition.ID, params);
         assertNotNull(publishedRendition);

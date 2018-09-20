@@ -51,7 +51,7 @@ public class PublishRendition {
     @Param(name = "target")
     protected DocumentModel target;
 
-    @Param(name = "renditionName")
+    @Param(name = "renditionName", required = false)
     protected String renditionName;
 
     @Param(name = "override", required = false, values = "true")
@@ -60,7 +60,7 @@ public class PublishRendition {
     @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentModel doc) {
         RenditionService rs = Framework.getService(RenditionService.class);
-        Rendition rendition = StringUtils.isEmpty(renditionName) ? rs.getDefaultRendition(doc, "publish", null)
+        Rendition rendition = StringUtils.isEmpty(renditionName) ? rs.getDefaultRendition(doc, "publish", true, null)
                 : rs.getRendition(doc, renditionName, true);
         if (rendition == null) {
             throw new NuxeoException("Unable to render the document");
