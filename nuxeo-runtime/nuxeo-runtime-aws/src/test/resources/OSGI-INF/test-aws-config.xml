@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.aws.core.test">
+
+  <extension target="org.nuxeo.runtime.aws.ConfigurationService" point="configuration">
+    <configuration>
+      <accessKeyId>ACCESS_KEY</accessKeyId>
+      <secretAccessKey>SECRET_KEY</secretAccessKey>
+    </configuration>
+  </extension>
+
+</component>

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.aws.ConfigurationService">
+
+  <documentation>Manages AWS configuration.</documentation>
+
+  <implementation class="org.nuxeo.runtime.aws.AWSConfigurationServiceImpl" />
+
+  <extension-point name="configuration">
+    <documentation>Used to configure AWS</documentation>
+    <object class="org.nuxeo.runtime.aws.AWSConfigurationDescriptor" />
+  </extension-point>
+
+  <service>
+    <provide interface="org.nuxeo.runtime.aws.AWSConfigurationService" />
+  </service>
+
+</component>
