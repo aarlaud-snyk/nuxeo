@@ -46,7 +46,7 @@ public class BulkStatusComputation extends AbstractComputation {
     public void processRecord(ComputationContext context, String inputStreamName, Record record) {
         KeyValueStore kvStore = Framework.getService(KeyValueService.class).getKeyValueStore(BULK_KV_STORE_NAME);
         BulkStatus status = BulkCodecs.getStatusCodec().decode(record.getData());
-        kvStore.put(status.getId() + STATUS, record.getData());
+        kvStore.put(status.getCommandId() + STATUS, record.getData());
         context.askForCheckpoint();
     }
 }

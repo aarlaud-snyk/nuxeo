@@ -24,7 +24,6 @@ import java.time.Instant;
 
 import org.apache.avro.reflect.AvroEncode;
 import org.nuxeo.ecm.core.bulk.io.InstantAsLongEncoding;
-import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 
 /**
  * A message representing a command status.
@@ -55,7 +54,7 @@ public class BulkStatus implements Serializable {
 
     }
 
-    protected String id;
+    protected String commandId;
 
     protected State state;
 
@@ -77,8 +76,8 @@ public class BulkStatus implements Serializable {
      *
      * @return the id
      */
-    public String getId() {
-        return id;
+    public String getCommandId() {
+        return commandId;
     }
 
     /**
@@ -86,8 +85,8 @@ public class BulkStatus implements Serializable {
      *
      * @param id the id
      */
-    public void setId(String id) {
-        this.id = id;
+    public void setCommandId(String id) {
+        this.commandId = id;
     }
 
     /**
