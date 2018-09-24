@@ -83,8 +83,6 @@ import com.codahale.metrics.Timer;
  */
 public class WorkManagerImpl extends DefaultComponent implements WorkManager {
 
-    public static final String NAME = "org.nuxeo.ecm.core.work.service";
-
     protected static final String QUEUES_EP = "queues";
 
     protected static final String IMPL_EP = "implementation";
@@ -110,11 +108,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
     protected WorkQueuing queuing;
 
     protected boolean active = true;
-
-    @Override
-    protected String getName() {
-        return NAME;
-    }
 
     /**
      * Simple synchronizer to wake up when an in-JVM work is completed. Does not wake up on work completion from another

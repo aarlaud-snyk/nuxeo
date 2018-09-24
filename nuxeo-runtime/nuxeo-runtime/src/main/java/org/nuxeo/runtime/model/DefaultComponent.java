@@ -19,8 +19,8 @@
 
 package org.nuxeo.runtime.model;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +33,9 @@ import org.nuxeo.runtime.model.impl.ComponentManagerImpl;
  */
 public class DefaultComponent implements Component, Adaptable {
 
+    /** @since 10.3 */
+    protected String name;
+
     /**
      * @since 5.6
      */
@@ -41,8 +44,14 @@ public class DefaultComponent implements Component, Adaptable {
     private DescriptorRegistry registry;
 
     @Override
+    public void setName(String name) {
+        Objects.requireNonNull(name);
+        this.name = name;
+    }
+
+    @Override
     public void activate(ComponentContext context) {
-        getLog().debug("Activating component " + getName());
+        getLog().debug("Activating component " + name);
         registry = ((ComponentManagerImpl) context.getRuntimeContext()
                                                   .getRuntime()
                                                   .getComponentManager()).getDescriptors();
@@ -51,7 +60,7 @@ public class DefaultComponent implements Component, Adaptable {
 
     @Override
     public void deactivate(ComponentContext context) {
-        getLog().debug("Deactivating component " + getName());
+        getLog().debug("Deactivating component " + name);
         if (getRegistry() != null) {
             getRegistry().clear();
         }
@@ -83,18 +92,18 @@ public class DefaultComponent implements Component, Adaptable {
     }
 
     public void registerContribution(Object contribution, String xp, ComponentInstance component) {
-        if (contribution instanceof Descriptor && getName() != null) {
+        if (contribution instanceof Descriptor) {
             Descriptor descriptor = (Descriptor) contribution;
-            getRegistry().register(getName(), xp, descriptor);
-            getLog().debug(String.format("Registered %s to %s.%s", descriptor.getId(), getName(), xp));
+            getRegistry().register(name, xp, descriptor);
+            getLog().debug(String.format("Registered %s to %s.%s", descriptor.getId(), name, xp));
         }
     }
 
     public void unregisterContribution(Object contribution, String xp, ComponentInstance component) {
-        if (contribution instanceof Descriptor && getName() != null) {
+        if (contribution instanceof Descriptor) {
             Descriptor descriptor = (Descriptor) contribution;
-            getRegistry().unregister(getName(), xp, descriptor);
-            getLog().debug(String.format("Unregistered %s from %s.%s", descriptor.getId(), getName(), xp));
+            getRegistry().unregister(name, xp, descriptor);
+            getLog().debug(String.format("Unregistered %s from %s.%s", descriptor.getId(), name, xp));
         }
     }
 
@@ -105,14 +114,14 @@ public class DefaultComponent implements Component, Adaptable {
 
     @Override
     public void start(ComponentContext context) {
-        getLog().debug("Starting component " + getName());
+        getLog().debug("Starting component " + name);
         // delegate for now to applicationStarted
         applicationStarted(context);
     }
 
     @Override
     public void stop(ComponentContext context) throws InterruptedException {
-        getLog().debug("Stopping component " + getName());
+        getLog().debug("Stopping component " + name);
     }
 
     /**
@@ -137,13 +146,6 @@ public class DefaultComponent implements Component, Adaptable {
     /**
      * @since 10.3
      */
-    protected String getName() {
-        return null;
-    }
-
-    /**
-     * @since 10.3
-     */
     protected Log getLog() {
         return LogFactory.getLog(getClass());
     }
@@ -159,34 +161,28 @@ public class DefaultComponent implements Component, Adaptable {
      * @since 10.3
      */
     protected boolean register(String xp, Descriptor descriptor) {
-        return getRegistry().register(getName(), xp, descriptor);
+        return getRegistry().register(name, xp, descriptor);
     }
 
     /**
      * @since 10.3
      */
     protected boolean unregister(String xp, Descriptor descriptor) {
-        return getRegistry().unregister(getName(), xp, descriptor);
+        return getRegistry().unregister(name, xp, descriptor);
     }
 
     /**
      * @since 10.3
      */
     protected <T extends Descriptor> T getDescriptor(String xp, String id) {
-        if (getName() == null) {
-            return null;
-        }
-        return getRegistry().getDescriptor(getName(), xp, id);
+        return getRegistry().getDescriptor(name, xp, id);
     }
 
     /**
      * @since 10.3
      */
     protected <T extends Descriptor> List<T> getDescriptors(String xp) {
-        if (getName() == null) {
-            return Collections.emptyList();
-        }
-        return getRegistry().getDescriptors(getName(), xp);
+        return getRegistry().getDescriptors(name, xp);
     }
 
 }
