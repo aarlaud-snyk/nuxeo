@@ -25,6 +25,10 @@
     <priority value="INFO" />
   </category>
 
+  <category name="org.apache.kafka">
+    <priority value="WARN" />
+  </category>
+
   <root>
     <appender-ref ref="stderr" />
     <appender-ref ref="stdout" />
